@@ -264,6 +264,21 @@ function generateMockData() {
         status: 'Disponível'
       });
     }
+
+    // Adicionar 1-2 imóveis do tipo "Taxa de Condomínio" para alguns clientes
+    if (i <= 5) { // Apenas para os primeiros 5 clientes
+      const street = randomItem(streetNames);
+      const number = randomInt(10, 2000);
+      properties.push({
+        id: `prop-cond-${i}`,
+        ownerId: ownerId,
+        address: `${street}, ${number} - Condomínio Residencial`,
+        type: 'Taxa de Condomínio',
+        value: randomInt(50000, 200000),
+        iptu: randomInt(200, 1000),
+        status: 'Disponível'
+      });
+    }
   }
 
   // 4. Tenants (40)

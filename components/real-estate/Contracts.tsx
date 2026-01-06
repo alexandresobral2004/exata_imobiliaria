@@ -12,7 +12,7 @@ import { useRealEstate } from './RealEstateContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { maskCurrency, maskPhone } from '../../utils/masks';
+import { maskCurrency, maskPhone, maskCPFCNPJ } from '../../utils/masks';
 import { toast } from 'sonner';
 
 export function Contracts() {
@@ -33,11 +33,13 @@ export function Contracts() {
     rentAmount: '',
     paymentDay: '',
     securityDeposit: '',
+    caucaoComplement: '',
     complement: '',
     brokerId: '',
     status: 'Ativo' as 'Ativo' | 'Encerrado',
     guaranteeType: 'none' as 'none' | 'caucao' | 'fiador' | 'seguro' | 'sem_garantia',
     guarantorName: '',
+    guarantorDocument: '',
     guarantorPhone: '',
     addendumNumber: '',
     addendumDate: ''
@@ -55,6 +57,10 @@ export function Contracts() {
     const matchesStatus = statusFilter === 'all' || contract.status === statusFilter;
     
     return matchesSearch && matchesStatus;
+  }).sort((a, b) => {
+    const tenantA = tenants.find(t => t.id === a.tenantId)?.name || '';
+    const tenantB = tenants.find(t => t.id === b.tenantId)?.name || '';
+    return tenantA.localeCompare(tenantB);
   });
 
   const getProperty = (id: string) => properties.find(p => p.id === id);
@@ -80,11 +86,13 @@ export function Contracts() {
       rentAmount: '',
       paymentDay: '',
       securityDeposit: '',
+      caucaoComplement: '',
       complement: '',
       brokerId: '',
       status: 'Ativo',
       guaranteeType: 'none',
       guarantorName: '',
+      guarantorDocument: '',
       guarantorPhone: '',
       addendumNumber: '',
       addendumDate: ''
@@ -232,12 +240,14 @@ export function Contracts() {
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o imóvel" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {availableProperties.map(property => (
-                      <SelectItem key={property.id} value={property.id}>
-                        {property.address}
-                      </SelectItem>
-                    ))}
+                  <SelectContent className="max-h-[300px] overflow-y-auto">
+                    {availableProperties
+                      .sort((a, b) => a.address.localeCompare(b.address))
+                      .map(property => (
+                        <SelectItem key={property.id} value={property.id}>
+                          {property.address}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -253,12 +263,14 @@ export function Contracts() {
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o inquilino" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {tenants.map(tenant => (
-                        <SelectItem key={tenant.id} value={tenant.id}>
-                          {tenant.name}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      {tenants
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map(tenant => (
+                          <SelectItem key={tenant.id} value={tenant.id}>
+                            {tenant.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -272,69 +284,50 @@ export function Contracts() {
                     <SelectTrigger>
                       <SelectValue placeholder="Sem intermediador" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
                       <SelectItem value="none">Sem intermediador</SelectItem>
-                      {brokers.map(broker => (
-                        <SelectItem key={broker.id} value={broker.id}>
-                          {broker.name}
-                        </SelectItem>
-                      ))}
+                      {brokers
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map(broker => (
+                          <SelectItem key={broker.id} value={broker.id}>
+                            {broker.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              {/* Nº do Contrato e Data do Contrato */}
+              {/* Dados Essenciais do Contrato */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="contractNumber">Nº do Contrato</Label>
+                  <Label htmlFor="startDate">Data de Início *</Label>
                   <Input 
-                    id="contractNumber" 
-                    value={formData.contractNumber}
-                    onChange={(e) => setFormData({...formData, contractNumber: e.target.value})}
-                    placeholder="Ex: LOC-2024-001"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contractDate">Data do Contrato</Label>
-                  <Input 
-                    id="contractDate" 
+                    id="startDate" 
                     type="date"
-                    value={formData.contractDate}
-                    onChange={(e) => setFormData({...formData, contractDate: e.target.value})}
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                    autoFocus
                   />
                 </div>
-              </div>
 
-              {/* Data de Início */}
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Data de Início</Label>
-                <Input 
-                  id="startDate" 
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  placeholder="dd/mm/aaaa"
-                />
-              </div>
-
-              {/* Duração, Valor do Aluguel e Dia do Vencimento */}
-              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="durationMonths">Duração (Meses)</Label>
+                  <Label htmlFor="durationMonths">Duração (Meses) *</Label>
                   <Input 
                     id="durationMonths" 
                     type="number"
                     min="1"
                     value={formData.durationMonths}
                     onChange={(e) => setFormData({...formData, durationMonths: e.target.value})}
-                    placeholder="12"
+                    placeholder="Ex: 12"
                   />
                 </div>
+              </div>
 
+              {/* Valores */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="rentAmount">Valor do Aluguel (R$)</Label>
+                  <Label htmlFor="rentAmount">Valor do Aluguel (R$) *</Label>
                   <Input 
                     id="rentAmount" 
                     value={formData.rentAmount}
@@ -344,7 +337,7 @@ export function Contracts() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="paymentDay">Dia do Vencimento</Label>
+                  <Label htmlFor="paymentDay">Dia do Vencimento *</Label>
                   <Input 
                     id="paymentDay" 
                     type="number"
@@ -352,10 +345,44 @@ export function Contracts() {
                     max="31"
                     value={formData.paymentDay}
                     onChange={(e) => setFormData({...formData, paymentDay: e.target.value})}
-                    placeholder="5"
+                    placeholder="Ex: 5"
                   />
                 </div>
               </div>
+
+              {/* Campos Opcionais em Accordion */}
+              <details className="group">
+                <summary className="flex items-center justify-between cursor-pointer list-none p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                  <span className="text-sm font-medium text-gray-700 dark:text-zinc-300 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Dados Adicionais do Contrato (Opcional)
+                  </span>
+                  <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div className="mt-4 space-y-4 px-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="contractNumber">Nº do Contrato</Label>
+                      <Input 
+                        id="contractNumber" 
+                        value={formData.contractNumber}
+                        onChange={(e) => setFormData({...formData, contractNumber: e.target.value})}
+                        placeholder="Ex: LOC-2024-001"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="contractDate">Data do Contrato</Label>
+                      <Input 
+                        id="contractDate" 
+                        type="date"
+                        value={formData.contractDate}
+                        onChange={(e) => setFormData({...formData, contractDate: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </details>
 
               {/* Garantia Locatícia */}
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
@@ -386,15 +413,27 @@ export function Contracts() {
 
                 {/* Campos condicionais baseados no tipo de garantia */}
                 {formData.guaranteeType === 'caucao' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="securityDeposit" className="text-sm">Valor da Caução (R$)</Label>
-                    <Input 
-                      id="securityDeposit" 
-                      value={formData.securityDeposit}
-                      onChange={(e) => setFormData({...formData, securityDeposit: maskCurrency(e.target.value)})}
-                      placeholder="0,00"
-                      className="bg-white dark:bg-zinc-800"
-                    />
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="securityDeposit" className="text-sm">Valor da Caução (R$)</Label>
+                      <Input 
+                        id="securityDeposit" 
+                        value={formData.securityDeposit}
+                        onChange={(e) => setFormData({...formData, securityDeposit: maskCurrency(e.target.value)})}
+                        placeholder="0,00"
+                        className="bg-white dark:bg-zinc-800"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="caucaoComplement" className="text-sm">Complemento Caução (R$)</Label>
+                      <Input 
+                        id="caucaoComplement" 
+                        value={formData.caucaoComplement || ''}
+                        onChange={(e) => setFormData({...formData, caucaoComplement: maskCurrency(e.target.value)})}
+                        placeholder="0,00"
+                        className="bg-white dark:bg-zinc-800"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -410,6 +449,16 @@ export function Contracts() {
                         value={formData.guarantorName}
                         onChange={(e) => setFormData({...formData, guarantorName: e.target.value})}
                         placeholder="Nome completo do fiador"
+                        className="bg-white dark:bg-zinc-800"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="guarantorDocument" className="text-sm">CPF/CNPJ do Fiador</Label>
+                      <Input 
+                        id="guarantorDocument" 
+                        value={formData.guarantorDocument || ''}
+                        onChange={(e) => setFormData({...formData, guarantorDocument: maskCPFCNPJ(e.target.value)})}
+                        placeholder="000.000.000-00"
                         className="bg-white dark:bg-zinc-800"
                       />
                     </div>
@@ -443,37 +492,39 @@ export function Contracts() {
                 )}
               </div>
 
-              {/* Seção de Aditivo */}
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-                <Label className="text-sm font-medium text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-3">
-                  <FileText className="w-4 h-4" />
-                  Aditivo
-                </Label>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="addendumNumber" className="text-sm">Número Aditivo ADM</Label>
-                    <Input 
-                      id="addendumNumber" 
-                      value={formData.addendumNumber}
-                      onChange={(e) => setFormData({...formData, addendumNumber: e.target.value})}
-                      placeholder="Ex: ADM-2024-001"
-                      className="bg-white dark:bg-zinc-800"
-                    />
-                  </div>
+              {/* Seção de Aditivo em Accordion */}
+              <details className="group">
+                <summary className="flex items-center justify-between cursor-pointer list-none p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors border border-blue-100 dark:border-blue-800">
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Aditivo (Opcional)
+                  </span>
+                  <span className="text-blue-400 group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div className="mt-4 space-y-4 px-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="addendumNumber" className="text-sm">Número Aditivo ADM</Label>
+                      <Input 
+                        id="addendumNumber" 
+                        value={formData.addendumNumber}
+                        onChange={(e) => setFormData({...formData, addendumNumber: e.target.value})}
+                        placeholder="Ex: ADM-2024-001"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="addendumDate" className="text-sm">Data Aditivo</Label>
-                    <Input 
-                      id="addendumDate" 
-                      type="date"
-                      value={formData.addendumDate}
-                      onChange={(e) => setFormData({...formData, addendumDate: e.target.value})}
-                      className="bg-white dark:bg-zinc-800"
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="addendumDate" className="text-sm">Data Aditivo</Label>
+                      <Input 
+                        id="addendumDate" 
+                        type="date"
+                        value={formData.addendumDate}
+                        onChange={(e) => setFormData({...formData, addendumDate: e.target.value})}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              </details>
 
               <DialogFooter className="gap-2 mt-6">
                 <Button 

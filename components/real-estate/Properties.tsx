@@ -417,6 +417,7 @@ export function Properties() {
                     <SelectItem value="Sala Comercial">Sala Comercial</SelectItem>
                     <SelectItem value="Comercial">Comercial</SelectItem>
                     <SelectItem value="Terreno">Terreno</SelectItem>
+                    <SelectItem value="Taxa de Condomínio">Taxa de Condomínio</SelectItem>
                     <SelectItem value="Outros">Outros</SelectItem>
                   </SelectContent>
                 </Select>

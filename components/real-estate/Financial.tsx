@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { maskCurrency } from '../../utils/masks';
 
 export function Financial() {
-  const { financialRecords, properties, contracts, owners, categories, addFinancialRecord, updateFinancialRecord, deleteFinancialRecord } = useRealEstate();
+  const { financialRecords, properties, contracts, owners, brokers, categories, addFinancialRecord, updateFinancialRecord, deleteFinancialRecord, generateBrokerCommission } = useRealEstate();
   const [filter, setFilter] = useState('all');
   const [selectedOwner, setSelectedOwner] = useState('all');
   const [startDate, setStartDate] = useState('');
@@ -33,8 +33,19 @@ export function Financial() {
     return { property, owner };
   };
 
+  // Get current month and year
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  
   const filteredRecords = financialRecords.filter(record => {
     const details = getContractDetails(record.contractId);
+    const recordDate = new Date(record.dueDate);
+    const recordMonth = recordDate.getMonth();
+    const recordYear = recordDate.getFullYear();
+
+    // Only show records from current month
+    if (recordMonth !== currentMonth || recordYear !== currentYear) return false;
 
     // Filter by Status
     if (filter === 'pending' && record.status !== 'Pendente') return false;
@@ -46,20 +57,46 @@ export function Financial() {
       if (!details || details.owner?.id !== selectedOwner) return false;
     }
 
-    // Filter by Date Range
+    // Filter by Date Range (optional additional filter)
     if (startDate && record.dueDate < startDate) return false;
     if (endDate && record.dueDate > endDate) return false;
 
     return true;
   }).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
 
-  const totalReceivables = filteredRecords
-    .filter(record => record.status !== 'Pago')
-    .reduce((sum, record) => sum + record.amount, 0);
+  // Calcular totais por categoria (a receber - pendentes)
+  const receivablesByCategory = filteredRecords
+    .filter(record => record.status !== 'Pago' && record.type === 'Receita')
+    .reduce((acc, record) => {
+      const category = record.category || 'Outros';
+      acc[category] = (acc[category] || 0) + record.amount;
+      return acc;
+    }, {} as Record<string, number>);
 
-  const totalPaid = filteredRecords
-    .filter(record => record.status === 'Pago')
-    .reduce((sum, record) => sum + record.amount, 0);
+  const totalReceivables = Object.values(receivablesByCategory).reduce((sum, val) => sum + val, 0);
+
+  // Calcular totais por categoria (já recebidos - pagos)
+  const paidByCategory = filteredRecords
+    .filter(record => record.status === 'Pago' && record.type === 'Receita')
+    .reduce((acc, record) => {
+      const category = record.category || 'Outros';
+      acc[category] = (acc[category] || 0) + record.amount;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const totalPaid = Object.values(paidByCategory).reduce((sum, val) => sum + val, 0);
+
+  // Calcular comissões do mês (detalhadas por corretor)
+  const commissionsByBroker = filteredRecords
+    .filter(record => record.type === 'Despesa' && record.category === 'Comissão' && record.status === 'Pago')
+    .reduce((acc, record) => {
+      // Extrair nome do corretor da descrição
+      const brokerName = record.description.split(' - ')[0].replace('Comissão ', '') || 'Outros';
+      acc[brokerName] = (acc[brokerName] || 0) + record.amount;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const totalCommissions = Object.values(commissionsByBroker).reduce((sum, val) => sum + val, 0);
 
   const resetForm = () => {
     setEditingId(null);
@@ -71,7 +108,36 @@ export function Financial() {
   };
 
   const handlePay = (id: string) => {
+    const record = financialRecords.find(r => r.id === id);
+    if (!record) return;
+
+    // Marcar como pago
     updateFinancialRecord(id, { status: 'Pago' });
+
+    // Se for uma receita de aluguel, gerar comissão automaticamente
+    if (record.type === 'Receita' && record.contractId && record.contractId !== 'manual') {
+      const contract = contracts.find(c => c.id === record.contractId);
+      if (contract && contract.brokerId) {
+        const broker = brokers.find(b => b.id === contract.brokerId);
+        if (broker && broker.commissionRate && broker.commissionRate > 0) {
+          // Calcular comissão
+          const commissionAmount = (record.amount * broker.commissionRate) / 100;
+          
+          // Criar registro de comissão
+          const commissionRecord = {
+            type: 'Despesa' as const,
+            amount: commissionAmount,
+            category: 'Comissão',
+            description: `Comissão ${broker.name} - ${record.description}`,
+            contractId: record.contractId,
+            dueDate: record.dueDate,
+            status: 'Pago' as const
+          };
+          
+          addFinancialRecord(commissionRecord);
+        }
+      }
+    }
   };
 
   return (
@@ -80,7 +146,9 @@ export function Financial() {
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Financeiro</h1>
-          <p className="text-gray-600 dark:text-zinc-400">Gerencie receitas e despesas</p>
+          <p className="text-gray-600 dark:text-zinc-400">
+            Receitas e despesas de {now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+          </p>
         </div>
         <Button 
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3" 
@@ -95,15 +163,28 @@ export function Financial() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-green-500 shadow-sm hover:shadow-md transition-shadow dark:bg-zinc-900 dark:border-zinc-800 dark:border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total a Receber</CardTitle>
             <ArrowUpCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-700 dark:text-green-400">
-              R$ {totalReceivables.toLocaleString()}
+            <div className="text-2xl font-bold text-green-700 dark:text-green-400 mb-3">
+              R$ {totalReceivables.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="space-y-1">
+              {Object.entries(receivablesByCategory).map(([category, amount]) => (
+                <div key={category} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600 dark:text-zinc-400">{category}:</span>
+                  <span className="font-semibold text-gray-700 dark:text-zinc-300">
+                    R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+              {Object.keys(receivablesByCategory).length === 0 && (
+                <p className="text-xs text-gray-500 dark:text-zinc-500">Nenhum valor a receber</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -114,20 +195,58 @@ export function Financial() {
             <CheckCircle className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-              R$ {totalPaid.toLocaleString()}
+            <div className="text-2xl font-bold text-blue-700 dark:text-blue-400 mb-3">
+              R$ {totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="space-y-1">
+              {Object.entries(paidByCategory).map(([category, amount]) => (
+                <div key={category} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600 dark:text-zinc-400">{category}:</span>
+                  <span className="font-semibold text-gray-700 dark:text-zinc-300">
+                    R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+              {Object.keys(paidByCategory).length === 0 && (
+                <p className="text-xs text-gray-500 dark:text-zinc-500">Nenhum valor recebido</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow dark:bg-zinc-900 dark:border-zinc-800 dark:border-l-orange-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Comissões Pagas</CardTitle>
+            <CreditCard className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-700 dark:text-orange-400 mb-3">
+              R$ {totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="space-y-1">
+              {Object.entries(commissionsByBroker).map(([broker, amount]) => (
+                <div key={broker} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600 dark:text-zinc-400">{broker}:</span>
+                  <span className="font-semibold text-gray-700 dark:text-zinc-300">
+                    R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+              {Object.keys(commissionsByBroker).length === 0 && (
+                <p className="text-xs text-gray-500 dark:text-zinc-500">Nenhuma comissão paga</p>
+              )}
             </div>
           </CardContent>
         </Card>
         
         <Card className="border-l-4 border-l-purple-500 shadow-sm hover:shadow-md transition-shadow dark:bg-zinc-900 dark:border-zinc-800 dark:border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+            <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
             <DollarSign className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${(totalPaid - totalReceivables) >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
-              R$ {(totalPaid - totalReceivables).toLocaleString()}
+            <div className={`text-2xl font-bold ${(totalPaid - totalCommissions) >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+              R$ {(totalPaid - totalCommissions).toLocaleString()}
             </div>
           </CardContent>
         </Card>

@@ -199,14 +199,14 @@ export function Owners() {
       {/* Header da Seção */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-100">Proprietários</h2>
-          <p className="text-sm text-gray-500 dark:text-zinc-400">Gerencie a base de proprietários de imóveis.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-100">Clientes</h2>
+          <p className="text-sm text-gray-500 dark:text-zinc-400">Gerencie a base de clientes proprietários de imóveis.</p>
         </div>
         <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="bg-green-600 hover:bg-green-700 text-white">
               <Plus className="w-4 h-4 mr-2" />
-              Novo Proprietário
+              Novo Cliente
             </Button>
           </DialogTrigger>
           <DialogContent 
@@ -555,7 +555,7 @@ export function Owners() {
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
         {/* Header do Card */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-100">Lista de Proprietários</h3>
+          <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-100">Lista de Clientes</h3>
         </div>
         
         {/* Filtros */}
@@ -607,12 +607,12 @@ export function Owners() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome/Profissão</TableHead>
-              <TableHead>CPF</TableHead>
-              <TableHead>Dados Contratuais</TableHead>
-              <TableHead>Dados Aditivo</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+          <TableHead>Nome/Profissão</TableHead>
+          <TableHead>CPF</TableHead>
+          <TableHead>Dados Contratuais</TableHead>
+          <TableHead>Dados Aditivo</TableHead>
+          <TableHead>Contato</TableHead>
+          <TableHead className="text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
             <TableBody>
@@ -732,7 +732,7 @@ export function Owners() {
                   <TableCell colSpan={6} className="text-center py-12 text-gray-500 dark:text-zinc-500">
                     <div className="flex flex-col items-center gap-2">
                       <User className="w-8 h-8 text-gray-300" />
-                      <span>Nenhum proprietário encontrado.</span>
+                      <span>Nenhum cliente encontrado.</span>
                     </div>
                   </TableCell>
                 </TableRow>

@@ -204,16 +204,16 @@ export function Financial() {
           {/* Desktop Table */}
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Referência</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
+        <TableRow>
+          <TableHead>Vencimento</TableHead>
+          <TableHead>Tipo</TableHead>
+          <TableHead>Descrição</TableHead>
+          <TableHead>Categoria</TableHead>
+          <TableHead>Referência</TableHead>
+          <TableHead>Valor</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-center">Ações</TableHead>
+        </TableRow>
             </TableHeader>
             <TableBody>
                 {filteredRecords.map((record) => {

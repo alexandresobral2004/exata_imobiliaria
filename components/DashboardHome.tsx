@@ -85,7 +85,7 @@ export function DashboardHome() {
               <div className="grid grid-cols-2 gap-4">
                 <button className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-50 dark:bg-zinc-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-gray-200 dark:border-zinc-600 rounded-lg text-gray-700 dark:text-zinc-300 hover:text-blue-700 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition-colors">
                   <Users className="h-6 w-6" />
-                  <span className="text-sm font-medium">Gerenciar Proprietários</span>
+                  <span className="text-sm font-medium">Gerenciar Clientes</span>
                 </button>
                 <button className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-50 dark:bg-zinc-700 hover:bg-green-50 dark:hover:bg-green-900/20 border border-gray-200 dark:border-zinc-600 rounded-lg text-gray-700 dark:text-zinc-300 hover:text-green-700 dark:hover:text-green-400 hover:border-green-200 dark:hover:border-green-800 transition-colors">
                   <Key className="h-6 w-6" />

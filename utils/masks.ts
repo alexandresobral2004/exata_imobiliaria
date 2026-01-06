@@ -7,6 +7,28 @@ export const maskCPF = (value: string) => {
     .replace(/(-\d{2})\d+?$/, '$1');
 };
 
+export const maskCNPJ = (value: string) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+export const maskCPFCNPJ = (value: string) => {
+  const cleanValue = value.replace(/\D/g, '');
+  
+  // Se tem até 11 dígitos, aplica máscara de CPF
+  if (cleanValue.length <= 11) {
+    return maskCPF(value);
+  }
+  
+  // Se tem mais de 11 dígitos, aplica máscara de CNPJ
+  return maskCNPJ(value);
+};
+
 export const maskPhone = (value: string) => {
   return value
     .replace(/\D/g, '')

@@ -219,10 +219,10 @@ export function Users() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[32%] min-w-[260px]">Usuário</TableHead>
-                  <TableHead className="w-[32%] min-w-[260px]">Contato</TableHead>
-                  <TableHead className="w-[18%] min-w-[140px]">Permissão</TableHead>
-                  <TableHead className="w-[18%] min-w-[140px]">Ações</TableHead>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>Contato</TableHead>
+                  <TableHead>Permissão</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
             <TableBody>

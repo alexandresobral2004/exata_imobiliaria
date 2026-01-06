@@ -125,7 +125,7 @@ export function RealEstateDashboard({ onNavigateToModule }: DashboardProps) {
                   onClick={() => navigateTo('owners')}
                 >
                   <Users className="h-5 w-5" />
-                  <span className="text-sm font-medium">Gerenciar Proprietários</span>
+                  <span className="text-sm font-medium">Gerenciar Clientes</span>
                 </Button>
                 <Button 
                   variant="outline" 

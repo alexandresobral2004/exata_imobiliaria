@@ -20,52 +20,52 @@ export function RealEstateLayout() {
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Gestão Imobiliária</h1>
-          <p className="text-gray-600 dark:text-zinc-400">Gerencie proprietários, inquilinos, imóveis e contratos.</p>
+          <p className="text-gray-600 dark:text-zinc-400">Gerencie clientes, inquilinos, imóveis e contratos.</p>
         </div>
 
         {/* Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-transparent p-0 h-auto w-full justify-start border-b border-gray-200 dark:border-zinc-800 rounded-none gap-0">
+          <TabsList className="bg-gray-50 dark:bg-zinc-900 p-2 h-auto w-full justify-between rounded-full border border-gray-200 dark:border-zinc-800">
             <TabsTrigger 
               value="owners" 
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-green-600 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400 dark:data-[state=active]:border-green-400 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full data-[state=active]:bg-white data-[state=active]:text-green-600 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-green-500 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-transparent data-[state=active]:shadow-sm"
             >
-              <Users className="w-4 h-4" />
+              <Users className="w-5 h-5" />
               Proprietários
             </TabsTrigger>
             <TabsTrigger 
               value="properties" 
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-green-600 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400 dark:data-[state=active]:border-green-400 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full data-[state=active]:bg-white data-[state=active]:text-green-600 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-green-500 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-transparent data-[state=active]:shadow-sm"
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-5 h-5" />
               Imóveis
             </TabsTrigger>
             <TabsTrigger 
               value="tenants" 
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-green-600 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400 dark:data-[state=active]:border-green-400 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full data-[state=active]:bg-white data-[state=active]:text-green-600 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-green-500 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-transparent data-[state=active]:shadow-sm"
             >
-              <Key className="w-4 h-4" />
+              <Key className="w-5 h-5" />
               Inquilinos
             </TabsTrigger>
             <TabsTrigger 
               value="contracts" 
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-green-600 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400 dark:data-[state=active]:border-green-400 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full data-[state=active]:bg-white data-[state=active]:text-green-600 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-green-500 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-transparent data-[state=active]:shadow-sm"
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-5 h-5" />
               Contratos
             </TabsTrigger>
             <TabsTrigger 
               value="financial" 
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-green-600 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400 dark:data-[state=active]:border-green-400 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full data-[state=active]:bg-white data-[state=active]:text-green-600 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-green-500 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-transparent data-[state=active]:shadow-sm"
             >
-              <DollarSign className="w-4 h-4" />
+              <DollarSign className="w-5 h-5" />
               Financeiro
             </TabsTrigger>
             <TabsTrigger 
               value="brokers" 
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-green-600 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400 dark:data-[state=active]:border-green-400 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full data-[state=active]:bg-white data-[state=active]:text-green-600 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-green-500 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-transparent data-[state=active]:shadow-sm"
             >
-              <Briefcase className="w-4 h-4" />
+              <Briefcase className="w-5 h-5" />
               Corretores
             </TabsTrigger>
           </TabsList>

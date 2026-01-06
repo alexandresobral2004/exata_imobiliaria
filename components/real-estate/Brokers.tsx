@@ -175,11 +175,11 @@ export function Brokers() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[24%] min-w-[190px]">Nome</TableHead>
-                  <TableHead className="w-[18%] min-w-[140px]">CRECI</TableHead>
-                  <TableHead className="w-[30%] min-w-[240px]">Contato</TableHead>
-                  <TableHead className="w-[14%] min-w-[110px]">Taxa</TableHead>
-                  <TableHead className="w-[14%] min-w-[110px]">Ações</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>CRECI</TableHead>
+                  <TableHead>Contato</TableHead>
+                  <TableHead>Taxa</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
             <TableBody>

@@ -11,6 +11,7 @@ import { Plus, Search, Mail, Phone, FileText, Trash2, Edit, User, MapPin, Calend
 import { useRealEstate } from './RealEstateContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { maskCPFCNPJ, maskPhone } from '../../utils/masks';
 
 export function Tenants() {
   const { tenants, addTenant, updateTenant, deleteTenant } = useRealEstate();
@@ -118,8 +119,8 @@ export function Tenants() {
                   <Input 
                     id="document" 
                     value={formData.document}
-                    onChange={(e) => setFormData({...formData, document: e.target.value})}
-                   placeholder="000.000.000-00"
+                    onChange={(e) => setFormData({...formData, document: maskCPFCNPJ(e.target.value)})}
+                   placeholder="000.000.000-00 ou 00.000.000/0000-00"
                  />
                </div>
                <div className="space-y-2">
@@ -182,7 +183,7 @@ export function Tenants() {
                  <Input 
                    id="phone" 
                    value={formData.phone}
-                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                   onChange={(e) => setFormData({...formData, phone: maskPhone(e.target.value)})}
                    placeholder="(11) 99999-9999"
                  />
                </div>
@@ -191,7 +192,7 @@ export function Tenants() {
                  <Input 
                    id="whatsapp" 
                    value={formData.whatsapp}
-                   onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                   onChange={(e) => setFormData({...formData, whatsapp: maskPhone(e.target.value)})}
                    placeholder="(11) 99999-9999"
                  />
                </div>
@@ -227,10 +228,10 @@ export function Tenants() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[35%] min-w-[280px]">Inquilino</TableHead>
-                  <TableHead className="w-[25%] min-w-[200px]">Dados Pessoais</TableHead>
-                  <TableHead className="w-[28%] min-w-[220px]">Contato</TableHead>
-                  <TableHead className="w-[12%] min-w-[100px]">Ações</TableHead>
+                  <TableHead>Inquilino</TableHead>
+                  <TableHead>Dados Pessoais</TableHead>
+                  <TableHead>Contato</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
             <TableBody>

@@ -412,8 +412,12 @@ export function Properties() {
                   <SelectContent>
                     <SelectItem value="Apartamento">Apartamento</SelectItem>
                     <SelectItem value="Casa">Casa</SelectItem>
+                    <SelectItem value="Kitnete">Kitnete</SelectItem>
+                    <SelectItem value="Galpão">Galpão</SelectItem>
+                    <SelectItem value="Sala Comercial">Sala Comercial</SelectItem>
                     <SelectItem value="Comercial">Comercial</SelectItem>
                     <SelectItem value="Terreno">Terreno</SelectItem>
+                    <SelectItem value="Outros">Outros</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -555,14 +559,14 @@ export function Properties() {
           {/* Desktop Table */}
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Endereço</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Detalhes</TableHead>
-                <TableHead>Locação / Garantia</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
+        <TableRow>
+          <TableHead>Endereço</TableHead>
+          <TableHead>Cliente</TableHead>
+          <TableHead>Detalhes</TableHead>
+          <TableHead>Locação / Garantia</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-center">Ações</TableHead>
+        </TableRow>
             </TableHeader>
             <TableBody>
               {filteredProperties.map((property) => {

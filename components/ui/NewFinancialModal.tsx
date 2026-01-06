@@ -191,115 +191,136 @@ export function NewFinancialModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-6">
-            {/* Tipo e Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-                  Tipo de Lançamento
-                </Label>
-                <Select 
-                  value={formData.type} 
-                  onValueChange={(value: 'Receita' | 'Despesa') => {
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      type: value,
-                      categoryId: '' // Reset category when type changes
-                    }));
-                  }}
+          <div className="p-6 space-y-4">
+            {/* Tipo - Botões Toggle */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
+                Tipo de Lançamento
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, type: 'Despesa', categoryId: '' }))}
+                  className={cn(
+                    "h-11 rounded-lg border-2 font-medium transition-all flex items-center justify-center gap-2",
+                    formData.type === 'Despesa'
+                      ? "border-red-500 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                  )}
                 >
-                  <SelectTrigger className={cn(
-                    "h-11 border-2 transition-colors",
-                    formData.type === 'Receita' 
-                      ? "border-green-200 focus:border-green-500 bg-green-50 dark:bg-green-900/20" 
-                      : "border-red-200 focus:border-red-500 bg-red-50 dark:bg-red-900/20"
-                  )}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Receita" className="text-green-700 dark:text-green-400">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        Receita
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="Despesa" className="text-red-700 dark:text-red-400">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        Despesa
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-                  Status do Pagamento
-                </Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value: 'Pendente' | 'Pago' | 'Atrasado') => 
-                    setFormData(prev => ({ ...prev, status: value }))
-                  }
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  Despesa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, type: 'Receita', categoryId: '' }))}
+                  className={cn(
+                    "h-11 rounded-lg border-2 font-medium transition-all flex items-center justify-center gap-2",
+                    formData.type === 'Receita'
+                      ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                  )}
                 >
-                  <SelectTrigger className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pendente">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        Pendente
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="Pago">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        Pago
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="Atrasado">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        Atrasado
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Receita
+                </button>
               </div>
             </div>
 
-            {/* Valor e Data */}
+            {/* Valor */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
+                Valor (R$) *
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  type="text"
+                  value={formData.amount}
+                  onChange={(e) => setFormData(prev => ({ ...prev, amount: maskCurrency(e.target.value) }))}
+                  placeholder="0,00"
+                  className={cn(
+                    "pl-10 h-12 text-xl font-bold",
+                    errors.amount && "border-red-500 focus:border-red-500"
+                  )}
+                  autoFocus
+                />
+              </div>
+              {errors.amount && (
+                <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.amount}
+                </p>
+              )}
+            </div>
+
+            {/* Descrição */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
+                Descrição *
+              </Label>
+              <Input
+                type="text"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Ex: Aluguel, Condomínio, IPTU..."
+                className={cn(
+                  "h-11",
+                  errors.description && "border-red-500 focus:border-red-500"
+                )}
+              />
+              {errors.description && (
+                <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.description}
+                </p>
+              )}
+            </div>
+
+            {/* Categoria e Data */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-                  Valor (R$) *
+                  Categoria *
                 </Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    type="text"
-                    value={formData.amount}
-                    onChange={(e) => setFormData(prev => ({ ...prev, amount: maskCurrency(e.target.value) }))}
-                    placeholder="0,00"
-                    className={cn(
-                      "pl-10 h-11 text-lg font-semibold",
-                      errors.amount && "border-red-500 focus:border-red-500"
-                    )}
-                  />
-                </div>
-                {errors.amount && (
+                <Select 
+                  value={formData.categoryId} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
+                >
+                  <SelectTrigger className={cn(
+                    "h-11",
+                    errors.categoryId && "border-red-500 focus:border-red-500"
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-gray-400" />
+                      <SelectValue placeholder="Selecione" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredCategories.map(category => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "w-2 h-2 rounded-full",
+                            formData.type === 'Receita' ? "bg-green-500" : "bg-red-500"
+                          )}></div>
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.categoryId && (
                   <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    {errors.amount}
+                    {errors.categoryId}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-                  Data de Vencimento *
+                  Vencimento *
                 </Label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -322,113 +343,104 @@ export function NewFinancialModal({
               </div>
             </div>
 
-            {/* Categoria */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-                Categoria *
-              </Label>
-              <Select 
-                value={formData.categoryId} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
-              >
-                <SelectTrigger className={cn(
-                  "h-11",
-                  errors.categoryId && "border-red-500 focus:border-red-500"
-                )}>
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-gray-400" />
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map(category => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          formData.type === 'Receita' ? "bg-green-500" : "bg-red-500"
-                        )}></div>
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.categoryId && (
-                <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.categoryId}
-                </p>
-              )}
-            </div>
-
-            {/* Descrição */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-                Descrição *
-              </Label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva o lançamento financeiro..."
-                  rows={3}
-                  className={cn(
-                    "w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-zinc-800 dark:text-zinc-100",
-                    errors.description && "border-red-500 focus:border-red-500"
-                  )}
-                />
-              </div>
-              {errors.description && (
-                <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.description}
-                </p>
-              )}
-            </div>
-
-            {/* Referência/Contrato */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-                Referência (Opcional)
-              </Label>
-              <Select 
-                value={formData.contractId} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, contractId: value }))}
-              >
-                <SelectTrigger className="h-11">
-                  <div className="flex items-center gap-2">
-                    <Building className="w-4 h-4 text-gray-400" />
-                    <SelectValue placeholder="Vincular a contrato ou selecionar avulso" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="manual">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-gray-400" />
-                      Lançamento Avulso
+            {/* Opções Avançadas */}
+            <div className="pt-2 border-t border-gray-200 dark:border-zinc-700">
+              <details className="group">
+                <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-zinc-100 py-2">
+                  <span>Opções Avançadas</span>
+                  <span className="text-xs text-gray-500">(Status e Referência)</span>
+                </summary>
+                
+                <div className="mt-3 space-y-4">
+                  {/* Status */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
+                      Status do Pagamento
+                    </Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, status: 'Pendente' }))}
+                        className={cn(
+                          "h-10 rounded-lg border font-medium text-sm transition-all",
+                          formData.status === 'Pendente'
+                            ? "border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                        )}
+                      >
+                        Pendente
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, status: 'Pago' }))}
+                        className={cn(
+                          "h-10 rounded-lg border font-medium text-sm transition-all",
+                          formData.status === 'Pago'
+                            ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                        )}
+                      >
+                        Pago
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, status: 'Atrasado' }))}
+                        className={cn(
+                          "h-10 rounded-lg border font-medium text-sm transition-all",
+                          formData.status === 'Atrasado'
+                            ? "border-red-500 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                        )}
+                      >
+                        Atrasado
+                      </button>
                     </div>
-                  </SelectItem>
-                  {contracts.map(contract => {
-                    const details = getContractDetails(contract.id);
-                    if (!details) return null;
-                    return (
-                      <SelectItem key={contract.id} value={contract.id}>
+                  </div>
+
+                  {/* Referência/Contrato */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
+                      Vincular a Contrato
+                    </Label>
+                    <Select 
+                      value={formData.contractId} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, contractId: value }))}
+                    >
+                      <SelectTrigger className="h-11">
                         <div className="flex items-center gap-2">
-                          <Building className="w-4 h-4 text-blue-500" />
-                          <div className="flex flex-col">
-                            <span>{details.property?.address}</span>
-                            <span className="text-xs text-gray-500">
-                              Proprietário: {details.owner?.name}
-                            </span>
-                          </div>
+                          <Building className="w-4 h-4 text-gray-400" />
+                          <SelectValue placeholder="Avulso" />
                         </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="w-4 h-4 text-gray-400" />
+                            Lançamento Avulso
+                          </div>
+                        </SelectItem>
+                        {contracts.map(contract => {
+                          const details = getContractDetails(contract.id);
+                          if (!details) return null;
+                          return (
+                            <SelectItem key={contract.id} value={contract.id}>
+                              <div className="flex items-center gap-2">
+                                <Building className="w-4 h-4 text-blue-500" />
+                                <div className="flex flex-col">
+                                  <span>{details.property?.address}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {details.owner?.name}
+                                  </span>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </details>
             </div>
 
             {/* Preview do valor */}

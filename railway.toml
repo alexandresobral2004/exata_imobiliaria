@@ -1,0 +1,14 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm install && npm run build"
+
+[deploy]
+startCommand = "npm run start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Configuração de volume para persistir SQLite
+# IMPORTANTE: Você precisa criar o volume "exata-db" no Railway Dashboard
+# Dashboard → Seu Projeto → New → Volume → Nome: "exata-db" → Tamanho: 1GB
+# E depois montá-lo em /app/data via Settings → Volumes
+

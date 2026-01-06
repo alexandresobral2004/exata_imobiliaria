@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "postbuild": "npm run db:setup:railway || true",
+    "start": "npm run db:setup:railway && next start",
+    "db:setup:railway": "tsx lib/db/setup.ts",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",

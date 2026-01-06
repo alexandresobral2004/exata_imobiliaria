@@ -1,0 +1,60 @@
+# Arquivos a ignorar no deploy Railway
+
+# Dependências (já instaladas no build)
+node_modules/
+
+# Build local (Railway faz build próprio)
+.next/
+
+# Cache
+.cache/
+.turbo/
+
+# Testes
+coverage/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+
+# Documentação de desenvolvimento
+*.md
+!README.md
+docs/
+
+# Configurações locais
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Banco de dados local (será criado no Railway)
+exata.db
+exata.db-shm
+exata.db-wal
+
+# Referências
+referencia/
+
+# Guidelines
+guidelines/
+

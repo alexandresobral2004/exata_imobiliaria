@@ -34,7 +34,8 @@ export function reconnectDatabase(): void {
 export function getReadConnection(): Database.Database {
   // Inicializa pool se necessário
   if (readConnections.length === 0) {
-    const dbPath = path.join(process.cwd(), 'exata.db');
+    const dbDir = getDatabaseDir();
+    const dbPath = path.join(dbDir, 'exata.db');
     
     for (let i = 0; i < MAX_READ_CONNECTIONS; i++) {
       const readDb = new Database(dbPath, { readonly: true });
@@ -66,6 +67,25 @@ export function getWriteConnection(): Database.Database {
 }
 
 /**
+ * Get database directory path
+ * Uses Railway volume in production, current directory in development
+ */
+function getDatabaseDir(): string {
+  // Railway mount path (quando volume estiver configurado)
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+    return process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  }
+  
+  // Fallback: usa /app/data em produção (Railway padrão)
+  if (process.env.NODE_ENV === 'production') {
+    return '/app/data';
+  }
+  
+  // Development: usa diretório atual
+  return process.cwd();
+}
+
+/**
  * Get or create SQLite database connection (Singleton pattern)
  * Optimized for maximum performance
  */
@@ -74,8 +94,16 @@ export function getDatabase(): Database.Database {
     return db;
   }
 
+  // Database directory
+  const dbDir = getDatabaseDir();
+  
+  // Create directory if it doesn't exist (important for Railway volume)
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+
   // Database file path
-  const dbPath = path.join(process.cwd(), 'exata.db');
+  const dbPath = path.join(dbDir, 'exata.db');
 
   // Create database connection
   db = new Database(dbPath);

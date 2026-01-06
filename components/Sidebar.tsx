@@ -15,7 +15,7 @@ export function Sidebar({ activePage, onNavigate, onLogout }: { activePage: stri
   ];
 
   return (
-    <aside className="hidden md:flex w-48 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 flex-col">
+    <aside className="hidden md:flex w-44 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 flex-col">
       <div className="flex flex-col h-full">
         {/* Logo Section */}
         <div className="flex items-center justify-center p-5 border-b border-gray-100 dark:border-zinc-800">

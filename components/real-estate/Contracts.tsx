@@ -554,8 +554,8 @@ export function Contracts() {
             Contratos Ativos
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4 mb-6">
+        <CardContent className="p-0">
+          <div className="space-y-4 mb-6 px-6 pt-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <Label htmlFor="search" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Buscar</Label>
@@ -604,18 +604,19 @@ export function Contracts() {
             )}
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Imóvel</TableHead>
-                <TableHead>Inquilino</TableHead>
-                <TableHead>Datas</TableHead>
-                <TableHead>Garantia</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-center">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto pb-6">
+            <Table className="max-w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Imóvel</TableHead>
+                  <TableHead>Inquilino</TableHead>
+                  <TableHead>Datas</TableHead>
+                  <TableHead>Garantia</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
                 {filteredContracts.map((contract) => (
                   <TableRow key={contract.id}>
@@ -730,6 +731,7 @@ export function Contracts() {
                 )}
               </TableBody>
             </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

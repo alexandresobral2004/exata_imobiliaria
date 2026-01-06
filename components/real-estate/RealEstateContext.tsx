@@ -412,121 +412,318 @@ function generateMockData() {
 }
 
 export function RealEstateProvider({ children }: { children: ReactNode }) {
-  // Initialize state with generated data
-  const [initialData] = useState(generateMockData);
-
-  const [owners, setOwners] = useState<Owner[]>(initialData.owners);
-  const [users, setUsers] = useState<User[]>(initialData.users);
-  const [properties, setProperties] = useState<Property[]>(initialData.properties);
-  const [tenants, setTenants] = useState<Tenant[]>(initialData.tenants);
-  const [brokers, setBrokers] = useState<Broker[]>(initialData.brokers);
-  const [contracts, setContracts] = useState<Contract[]>(initialData.contracts);
-  const [intermediations, setIntermediations] = useState<Intermediation[]>(initialData.intermediations);
-  const [financialRecords, setFinancialRecords] = useState<FinancialRecord[]>(initialData.financialRecords);
-
-  // Categorias Padrão
-  const [categories, setCategories] = useState<FinancialCategory[]>([
-    // Receitas
-    { id: '1', name: 'Aluguel', type: 'Receita' },
-    { id: '2', name: 'Taxa de Reserva', type: 'Receita' },
-    { id: '3', name: 'Multa por Atraso', type: 'Receita' },
-    { id: '4', name: 'Reembolso', type: 'Receita' },
-    // Despesas
-    { id: '5', name: 'Manutenção', type: 'Despesa' },
-    { id: '6', name: 'Condomínio', type: 'Despesa' },
-    { id: '7', name: 'IPTU', type: 'Despesa' },
-    { id: '8', name: 'Comissão', type: 'Despesa' },
-    { id: '9', name: 'Repasse a Cliente', type: 'Despesa' },
-    { id: '10', name: 'Publicidade', type: 'Despesa' },
-    { id: '11', name: 'SPC/Serasa', type: 'Despesa' },
-  ]);
+  // State for cached data
+  const [owners, setOwners] = useState<Owner[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [brokers, setBrokers] = useState<Broker[]>([]);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [intermediations, setIntermediations] = useState<Intermediation[]>([]);
+  const [financialRecords, setFinancialRecords] = useState<FinancialRecord[]>([]);
+  const [categories, setCategories] = useState<FinancialCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState('owners');
 
+  // Load initial data from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+        
+        // Load financial records for current month only (optimization)
+        const response = await fetch(`/api/data?month=${currentMonth}&year=${currentYear}`);
+        if (!response.ok) throw new Error('Failed to fetch data');
+        
+        const data = await response.json();
+        setOwners(data.owners || []);
+        setProperties(data.properties || []);
+        setTenants(data.tenants || []);
+        setBrokers(data.brokers || []);
+        setContracts(data.contracts || []);
+        setFinancialRecords(data.financialRecords || []); // Only current month
+        setUsers(data.users || []);
+        setCategories(data.categories || []);
+      } catch (error) {
+        console.error('Error loading data from database:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
   // Actions
-  const addOwner = (owner: Omit<Owner, 'id'>) => {
-    const newOwner = { ...owner, id: Math.random().toString(36).substr(2, 9) };
-    setOwners(prev => [...prev, newOwner]);
+  const addOwner = async (owner: Omit<Owner, 'id'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'owners', data: owner })
+      });
+      if (!response.ok) throw new Error('Failed to add owner');
+      const newOwner = await response.json();
+      setOwners(prev => [...prev, newOwner].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (error) {
+      console.error('Error adding owner:', error);
+    }
   };
 
-  const updateOwner = (id: string, updates: Partial<Owner>) => {
-    setOwners(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
+  const updateOwner = async (id: string, updates: Partial<Owner>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'owners', id, updates })
+      });
+      if (!response.ok) throw new Error('Failed to update owner');
+      const updated = await response.json();
+      setOwners(prev => prev.map(o => o.id === id ? updated : o));
+    } catch (error) {
+      console.error('Error updating owner:', error);
+    }
   };
 
-  const deleteOwner = (id: string) => {
-    setOwners(prev => prev.filter(o => o.id !== id));
+  const deleteOwner = async (id: string) => {
+    try {
+      const response = await fetch(`/api/data?entity=owners&id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete owner');
+      setOwners(prev => prev.filter(o => o.id !== id));
+    } catch (error) {
+      console.error('Error deleting owner:', error);
+    }
   };
 
-  const addUser = (user: Omit<User, 'id'>) => {
-    const newUser = { ...user, id: Math.random().toString(36).substr(2, 9) };
-    setUsers(prev => [...prev, newUser]);
+  const addUser = async (user: Omit<User, 'id'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'users', data: user })
+      });
+      if (!response.ok) throw new Error('Failed to add user');
+      const newUser = await response.json();
+      setUsers(prev => [...prev, newUser].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (error) {
+      console.error('Error adding user:', error);
+    }
   };
 
-  const updateUser = (id: string, updates: Partial<User>) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updates } : u));
+  const updateUser = async (id: string, updates: Partial<User>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'users', id, updates })
+      });
+      if (!response.ok) throw new Error('Failed to update user');
+      const updated = await response.json();
+      setUsers(prev => prev.map(u => u.id === id ? updated : u));
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
   };
 
-  const deleteUser = (id: string) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
+  const deleteUser = async (id: string) => {
+    try {
+      const response = await fetch(`/api/data?entity=users&id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete user');
+      setUsers(prev => prev.filter(u => u.id !== id));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
   };
 
-  const addProperty = (property: Omit<Property, 'id' | 'status'>) => {
-    const newProperty = { ...property, id: Math.random().toString(36).substr(2, 9), status: 'Disponível' as const };
-    setProperties(prev => [...prev, newProperty]);
+  const addProperty = async (property: Omit<Property, 'id' | 'status'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'properties', data: property })
+      });
+      if (!response.ok) throw new Error('Failed to add property');
+      const newProperty = await response.json();
+      setProperties(prev => [...prev, newProperty].sort((a, b) => a.address.localeCompare(b.address)));
+    } catch (error) {
+      console.error('Error adding property:', error);
+    }
   };
 
-  const updateProperty = (id: string, updates: Partial<Property>) => {
-    setProperties(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+  const updateProperty = async (id: string, updates: Partial<Property>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'properties', id, updates })
+      });
+      if (!response.ok) throw new Error('Failed to update property');
+      const updated = await response.json();
+      setProperties(prev => prev.map(p => p.id === id ? updated : p));
+    } catch (error) {
+      console.error('Error updating property:', error);
+    }
   };
 
-  const deleteProperty = (id: string) => {
-    setProperties(prev => prev.filter(p => p.id !== id));
+  const deleteProperty = async (id: string) => {
+    try {
+      const response = await fetch(`/api/data?entity=properties&id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete property');
+      setProperties(prev => prev.filter(p => p.id !== id));
+    } catch (error) {
+      console.error('Error deleting property:', error);
+    }
   };
 
-  const addTenant = (tenant: Omit<Tenant, 'id'>) => {
-    const newTenant = { ...tenant, id: Math.random().toString(36).substr(2, 9) };
-    setTenants(prev => [...prev, newTenant]);
+  const addTenant = async (tenant: Omit<Tenant, 'id'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'tenants', data: tenant })
+      });
+      if (!response.ok) throw new Error('Failed to add tenant');
+      const newTenant = await response.json();
+      setTenants(prev => [...prev, newTenant].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (error) {
+      console.error('Error adding tenant:', error);
+    }
   };
 
-  const updateTenant = (id: string, updates: Partial<Tenant>) => {
-    setTenants(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+  const updateTenant = async (id: string, updates: Partial<Tenant>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'tenants', id, updates })
+      });
+      if (!response.ok) throw new Error('Failed to update tenant');
+      const updated = await response.json();
+      setTenants(prev => prev.map(t => t.id === id ? updated : t));
+    } catch (error) {
+      console.error('Error updating tenant:', error);
+    }
   };
 
-  const deleteTenant = (id: string) => {
-    setTenants(prev => prev.filter(t => t.id !== id));
+  const deleteTenant = async (id: string) => {
+    try {
+      const response = await fetch(`/api/data?entity=tenants&id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete tenant');
+      setTenants(prev => prev.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting tenant:', error);
+    }
   };
 
-  const addBroker = (broker: Omit<Broker, 'id'>) => {
-    const newBroker = { ...broker, id: Math.random().toString(36).substr(2, 9) };
-    setBrokers(prev => [...prev, newBroker]);
+  const addBroker = async (broker: Omit<Broker, 'id'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'brokers', data: broker })
+      });
+      if (!response.ok) throw new Error('Failed to add broker');
+      const newBroker = await response.json();
+      setBrokers(prev => [...prev, newBroker].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (error) {
+      console.error('Error adding broker:', error);
+    }
   };
 
-  const updateBroker = (id: string, updates: Partial<Broker>) => {
-    setBrokers(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
+  const updateBroker = async (id: string, updates: Partial<Broker>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'brokers', id, updates })
+      });
+      if (!response.ok) throw new Error('Failed to update broker');
+      const updated = await response.json();
+      setBrokers(prev => prev.map(b => b.id === id ? updated : b));
+    } catch (error) {
+      console.error('Error updating broker:', error);
+    }
   };
 
-  const deleteBroker = (id: string) => {
-    setBrokers(prev => prev.filter(b => b.id !== id));
+  const deleteBroker = async (id: string) => {
+    try {
+      const response = await fetch(`/api/data?entity=brokers&id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete broker');
+      setBrokers(prev => prev.filter(b => b.id !== id));
+    } catch (error) {
+      console.error('Error deleting broker:', error);
+    }
   };
 
-  const addFinancialRecord = (record: Omit<FinancialRecord, 'id'>) => {
-    const newRecord = { ...record, id: Math.random().toString(36).substr(2, 9) };
-    setFinancialRecords(prev => [...prev, newRecord]);
+  const addFinancialRecord = async (record: Omit<FinancialRecord, 'id'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'financial', data: record })
+      });
+      if (!response.ok) throw new Error('Failed to add financial record');
+      const newRecord = await response.json();
+      setFinancialRecords(prev => [...prev, newRecord]);
+    } catch (error) {
+      console.error('Error adding financial record:', error);
+    }
   };
 
-  const updateFinancialRecord = (id: string, updates: Partial<FinancialRecord>) => {
-    setFinancialRecords(prev => prev.map(record => 
-      record.id === id ? { ...record, ...updates } : record
-    ));
+  const updateFinancialRecord = async (id: string, updates: Partial<FinancialRecord>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'financial', id, updates })
+      });
+      if (!response.ok) throw new Error('Failed to update financial record');
+      const updated = await response.json();
+      setFinancialRecords(prev => prev.map(record => 
+        record.id === id ? updated : record
+      ));
+    } catch (error) {
+      console.error('Error updating financial record:', error);
+    }
   };
 
-  const deleteFinancialRecord = (id: string) => {
-    setFinancialRecords(prev => prev.filter(f => f.id !== id));
+  const deleteFinancialRecord = async (id: string) => {
+    try {
+      const response = await fetch(`/api/data?entity=financial&id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete financial record');
+      setFinancialRecords(prev => prev.filter(f => f.id !== id));
+    } catch (error) {
+      console.error('Error deleting financial record:', error);
+    }
   };
 
-  const addCategory = (category: Omit<FinancialCategory, 'id'>) => {
-    const newCategory = { ...category, id: Math.random().toString(36).substr(2, 9) };
-    setCategories(prev => [...prev, newCategory]);
+  const addCategory = async (category: Omit<FinancialCategory, 'id'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'categories', data: category })
+      });
+      if (!response.ok) throw new Error('Failed to add category');
+      const newCategory = await response.json();
+      setCategories(prev => [...prev, newCategory]);
+    } catch (error) {
+      console.error('Error adding category:', error);
+    }
   };
 
   // Gerar taxa de intermediação do corretor
@@ -561,81 +758,115 @@ export function RealEstateProvider({ children }: { children: ReactNode }) {
     console.log(`Taxa de intermediação gerada: R$ ${commissionAmount.toFixed(2)} para ${broker.name}`);
   };
 
-  const addContract = (contractData: Omit<Contract, 'id' | 'status'>) => {
-    const contractId = Math.random().toString(36).substr(2, 9);
-    const newContract: Contract = { 
-      ...contractData, 
-      id: contractId, 
-      status: 'Ativo' 
-    };
+  const addContract = async (contractData: Omit<Contract, 'id' | 'status'>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'contracts', data: contractData })
+      });
+      if (!response.ok) throw new Error('Failed to add contract');
+      const newContract = await response.json();
+      setContracts(prev => [...prev, newContract]);
+      
+      // Update property status in local state
+      setProperties(prev => prev.map(p => 
+        p.id === contractData.propertyId ? { ...p, status: 'Alugado' as const } : p
+      ));
 
-    // Update property status
-    setProperties(prev => prev.map(p => p.id === contractData.propertyId ? { ...p, status: 'Alugado' } : p));
-
-    // Handle Broker Intermediation
-    if (contractData.brokerId) {
-      const broker = brokers.find(b => b.id === contractData.brokerId);
-      if (broker) {
-        const intermediation: Intermediation = {
-          id: Math.random().toString(36).substr(2, 9),
-          contractId,
-          brokerId: contractData.brokerId,
-          commissionAmount: contractData.rentAmount, 
-          date: new Date().toISOString()
-        };
-        setIntermediations(prev => [...prev, intermediation]);
-        
-        // Se o corretor tem taxa de intermediação definida, gerar registro financeiro automaticamente
-        if (broker.commissionRate && broker.commissionRate > 0) {
-          const commissionAmount = (contractData.rentAmount * broker.commissionRate) / 100;
-          setFinancialRecords(prev => [...prev, {
+      // Handle Broker Intermediation
+      if (contractData.brokerId) {
+        const broker = brokers.find(b => b.id === contractData.brokerId);
+        if (broker) {
+          const intermediation: Intermediation = {
             id: Math.random().toString(36).substr(2, 9),
-            contractId,
-            description: `Taxa de intermediação - Contrato ${contractData.contractNumber || contractId}`,
-            category: 'Comissão',
-            amount: commissionAmount,
-            type: 'Despesa',
-            dueDate: contractData.startDate,
-            status: 'Pendente'
-          }]);
+            contractId: newContract.id,
+            brokerId: contractData.brokerId,
+            commissionAmount: contractData.rentAmount, 
+            date: new Date().toISOString()
+          };
+          setIntermediations(prev => [...prev, intermediation]);
+          
+          // Generate commission if broker has commission rate
+          if (broker.commissionRate && broker.commissionRate > 0) {
+            const commissionAmount = (contractData.rentAmount * broker.commissionRate) / 100;
+            const commissionRecord = {
+              contractId: newContract.id,
+              description: `Taxa de intermediação - Contrato ${contractData.contractNumber || newContract.id}`,
+              category: 'Comissão',
+              amount: commissionAmount,
+              type: 'Despesa' as const,
+              dueDate: contractData.startDate,
+              status: 'Pendente' as const
+            };
+            await addFinancialRecord(commissionRecord);
+          }
         }
       }
+
+      // Generate monthly rent records
+      const start = new Date(contractData.startDate);
+      for (let i = 0; i < contractData.durationMonths; i++) {
+        const dueDate = new Date(start.getFullYear(), start.getMonth() + i, contractData.paymentDay);
+        const rentRecord = {
+          contractId: newContract.id,
+          description: `Aluguel Mês ${i + 1}/${contractData.durationMonths}`,
+          category: 'Aluguel',
+          amount: contractData.rentAmount,
+          dueDate: dueDate.toISOString().split('T')[0],
+          status: 'Pendente' as const,
+          type: 'Receita' as const
+        };
+        await addFinancialRecord(rentRecord);
+      }
+    } catch (error) {
+      console.error('Error adding contract:', error);
     }
+  };
 
-    setContracts(prev => [...prev, newContract]);
-
-    const records: FinancialRecord[] = [];
-    const start = new Date(contractData.startDate);
-    
-    for (let i = 0; i < contractData.durationMonths; i++) {
-      const dueDate = new Date(start.getFullYear(), start.getMonth() + i, contractData.paymentDay);
-      records.push({
-        id: Math.random().toString(36).substr(2, 9),
-        contractId,
-        description: `Aluguel Mês ${i + 1}/${contractData.durationMonths}`,
-        category: 'Aluguel',
-        amount: contractData.rentAmount,
-        dueDate: dueDate.toISOString().split('T')[0],
-        status: 'Pendente',
-        type: 'Receita'
+  const updateContract = async (id: string, updates: Partial<Contract>) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity: 'contracts', id, updates })
       });
+      if (!response.ok) throw new Error('Failed to update contract');
+      const updated = await response.json();
+      setContracts(prev => prev.map(c => c.id === id ? updated : c));
+      
+      // If status changed to Encerrado, update property status
+      if (updates.status === 'Encerrado') {
+        const contract = contracts.find(c => c.id === id);
+        if (contract) {
+          setProperties(prev => prev.map(p => 
+            p.id === contract.propertyId ? { ...p, status: 'Disponível' as const } : p
+          ));
+        }
+      }
+    } catch (error) {
+      console.error('Error updating contract:', error);
     }
-
-    setFinancialRecords(prev => [...prev, ...records]);
   };
 
-  const updateContract = (id: string, updates: Partial<Contract>) => {
-    setContracts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-  };
-
-  const deleteContract = (id: string) => {
-    // When deleting a contract, we should probably set property back to Available?
-    // For now simple delete.
-    const contract = contracts.find(c => c.id === id);
-    if (contract) {
-       setProperties(prev => prev.map(p => p.id === contract.propertyId ? { ...p, status: 'Disponível' } : p));
+  const deleteContract = async (id: string) => {
+    try {
+      const contract = contracts.find(c => c.id === id);
+      const response = await fetch(`/api/data?entity=contracts&id=${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete contract');
+      setContracts(prev => prev.filter(c => c.id !== id));
+      
+      // Update property status back to available
+      if (contract) {
+        setProperties(prev => prev.map(p => 
+          p.id === contract.propertyId ? { ...p, status: 'Disponível' as const } : p
+        ));
+      }
+    } catch (error) {
+      console.error('Error deleting contract:', error);
     }
-    setContracts(prev => prev.filter(c => c.id !== id));
   };
 
 

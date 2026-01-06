@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -15,14 +15,62 @@ import { cn } from '../ui/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { maskCurrency } from '../../utils/masks';
 
+interface FinancialSummary {
+  totalReceivables: number;
+  totalPaid: number;
+  totalCommissions: number;
+}
+
+interface FinancialData {
+  records: any[];
+  summary: FinancialSummary;
+  receivablesByCategory: Record<string, number>;
+  paidByCategory: Record<string, number>;
+  commissionsByBroker: Record<string, number>;
+}
+
 export function Financial() {
-  const { financialRecords, properties, contracts, owners, brokers, categories, addFinancialRecord, updateFinancialRecord, deleteFinancialRecord, generateBrokerCommission } = useRealEstate();
+  const { properties, contracts, owners, brokers, categories, addFinancialRecord, updateFinancialRecord, deleteFinancialRecord, generateBrokerCommission } = useRealEstate();
   const [filter, setFilter] = useState('all');
   const [selectedOwner, setSelectedOwner] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // State for optimized financial data
+  const [financialData, setFinancialData] = useState<FinancialData>({
+    records: [],
+    summary: { totalReceivables: 0, totalPaid: 0, totalCommissions: 0 },
+    receivablesByCategory: {},
+    paidByCategory: {},
+    commissionsByBroker: {}
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Get current month and year
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1; // API expects 1-indexed month
+  const currentYear = now.getFullYear();
+
+  // Fetch optimized financial data
+  useEffect(() => {
+    const fetchFinancialData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/data?entity=financialRecords&month=${currentMonth}&year=${currentYear}`);
+        if (!response.ok) throw new Error('Failed to fetch financial data');
+        const data = await response.json();
+        setFinancialData(data);
+      } catch (error) {
+        console.error('Error fetching financial data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFinancialData();
+  }, [currentMonth, currentYear]);
 
   const getContractDetails = (contractId: string) => {
     if (!contractId || contractId === 'manual') return null;
@@ -32,20 +80,9 @@ export function Financial() {
     const owner = owners.find(o => o.id === property?.ownerId);
     return { property, owner };
   };
-
-  // Get current month and year
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
   
-  const filteredRecords = financialRecords.filter(record => {
+  const filteredRecords = financialData.records.filter(record => {
     const details = getContractDetails(record.contractId);
-    const recordDate = new Date(record.dueDate);
-    const recordMonth = recordDate.getMonth();
-    const recordYear = recordDate.getFullYear();
-
-    // Only show records from current month
-    if (recordMonth !== currentMonth || recordYear !== currentYear) return false;
 
     // Filter by Status
     if (filter === 'pending' && record.status !== 'Pendente') return false;
@@ -64,39 +101,13 @@ export function Financial() {
     return true;
   }).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
 
-  // Calcular totais por categoria (a receber - pendentes)
-  const receivablesByCategory = filteredRecords
-    .filter(record => record.status !== 'Pago' && record.type === 'Receita')
-    .reduce((acc, record) => {
-      const category = record.category || 'Outros';
-      acc[category] = (acc[category] || 0) + record.amount;
-      return acc;
-    }, {} as Record<string, number>);
-
-  const totalReceivables = Object.values(receivablesByCategory).reduce((sum, val) => sum + val, 0);
-
-  // Calcular totais por categoria (já recebidos - pagos)
-  const paidByCategory = filteredRecords
-    .filter(record => record.status === 'Pago' && record.type === 'Receita')
-    .reduce((acc, record) => {
-      const category = record.category || 'Outros';
-      acc[category] = (acc[category] || 0) + record.amount;
-      return acc;
-    }, {} as Record<string, number>);
-
-  const totalPaid = Object.values(paidByCategory).reduce((sum, val) => sum + val, 0);
-
-  // Calcular comissões do mês (detalhadas por corretor)
-  const commissionsByBroker = filteredRecords
-    .filter(record => record.type === 'Despesa' && record.category === 'Comissão' && record.status === 'Pago')
-    .reduce((acc, record) => {
-      // Extrair nome do corretor da descrição
-      const brokerName = record.description.split(' - ')[0].replace('Comissão ', '') || 'Outros';
-      acc[brokerName] = (acc[brokerName] || 0) + record.amount;
-      return acc;
-    }, {} as Record<string, number>);
-
-  const totalCommissions = Object.values(commissionsByBroker).reduce((sum, val) => sum + val, 0);
+  // Use aggregated data from API
+  const totalReceivables = financialData.summary.totalReceivables;
+  const totalPaid = financialData.summary.totalPaid;
+  const totalCommissions = financialData.summary.totalCommissions;
+  const receivablesByCategory = financialData.receivablesByCategory;
+  const paidByCategory = financialData.paidByCategory;
+  const commissionsByBroker = financialData.commissionsByBroker;
 
   const resetForm = () => {
     setEditingId(null);
@@ -107,12 +118,12 @@ export function Financial() {
     setOpen(true);
   };
 
-  const handlePay = (id: string) => {
-    const record = financialRecords.find(r => r.id === id);
+  const handlePay = async (id: string) => {
+    const record = financialData.records.find(r => r.id === id);
     if (!record) return;
 
     // Marcar como pago
-    updateFinancialRecord(id, { status: 'Pago' });
+    await updateFinancialRecord(id, { status: 'Pago' });
 
     // Se for uma receita de aluguel, gerar comissão automaticamente
     if (record.type === 'Receita' && record.contractId && record.contractId !== 'manual') {
@@ -134,11 +145,29 @@ export function Financial() {
             status: 'Pago' as const
           };
           
-          addFinancialRecord(commissionRecord);
+          await addFinancialRecord(commissionRecord);
         }
       }
     }
+
+    // Reload financial data after payment
+    const response = await fetch(`/api/data?entity=financialRecords&month=${currentMonth}&year=${currentYear}`);
+    if (response.ok) {
+      const data = await response.json();
+      setFinancialData(data);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-zinc-400">Carregando dados financeiros...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

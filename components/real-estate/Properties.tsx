@@ -16,6 +16,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { maskCurrency } from '../../utils/masks';
 import { formatCEP } from '../../utils/formatters';
 import { toast } from 'sonner';
+import { Pagination } from '../ui/pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 // Função para obter variante do Badge baseado no status
 const getStatusVariant = (status: string): "default" | "secondary" | "outline" | "destructive" => {
@@ -217,6 +219,17 @@ export function Properties() {
 
     return true;
   }).sort((a, b) => a.address.localeCompare(b.address));
+
+  // Paginação
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedData: paginatedProperties,
+    totalItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = usePagination({ data: filteredProperties, itemsPerPage: 20 });
 
   const clearFilters = () => {
     setSearch('');
@@ -570,7 +583,7 @@ export function Properties() {
         </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProperties.map((property) => {
+              {paginatedProperties.map((property) => {
                 const info = getActiveContractInfo(property.id);
                 return (
                   <TableRow key={property.id}>
@@ -675,6 +688,15 @@ export function Properties() {
               )}
             </TableBody>
           </Table>
+          
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
         </CardContent>
       </Card>
     </div>

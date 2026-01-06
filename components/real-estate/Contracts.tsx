@@ -14,6 +14,8 @@ import { Badge } from '../ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { maskCurrency, maskPhone, maskCPFCNPJ } from '../../utils/masks';
 import { toast } from 'sonner';
+import { Pagination } from '../ui/pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 export function Contracts() {
   const { contracts, addContract, updateContract, deleteContract, properties, tenants, brokers, owners } = useRealEstate();
@@ -58,10 +60,22 @@ export function Contracts() {
     
     return matchesSearch && matchesStatus;
   }).sort((a, b) => {
-    const tenantA = tenants.find(t => t.id === a.tenantId)?.name || '';
-    const tenantB = tenants.find(t => t.id === b.tenantId)?.name || '';
-    return tenantA.localeCompare(tenantB);
+    // Ordenar do mais novo para o mais antigo (por data de início)
+    const dateA = new Date(a.startDate).getTime();
+    const dateB = new Date(b.startDate).getTime();
+    return dateB - dateA; // Mais recente primeiro
   });
+
+  // Paginação
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedData: paginatedContracts,
+    totalItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = usePagination({ data: filteredContracts, itemsPerPage: 20 });
 
   const getProperty = (id: string) => properties.find(p => p.id === id);
   const getTenant = (id: string) => tenants.find(t => t.id === id);
@@ -618,7 +632,7 @@ export function Contracts() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredContracts.map((contract) => (
+                {paginatedContracts.map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -731,6 +745,15 @@ export function Contracts() {
                 )}
               </TableBody>
             </Table>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
           </div>
         </CardContent>
       </Card>

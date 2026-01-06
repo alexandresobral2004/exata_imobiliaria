@@ -1,16 +1,31 @@
-import { getDatabase, generateId, transaction } from '../db/client';
+import { getDatabase, getReadConnection, getWriteConnection, generateId, transaction } from '../db/client';
+import { cachedQuery, invalidateCachePattern, generateCacheKey } from '../db/cache';
 import type Database from 'better-sqlite3';
 
 /**
  * Base Repository with common CRUD operations
+ * Suporta cache e connection pooling
  */
 export abstract class BaseRepository<T> {
   protected db: Database.Database;
+  protected readDb: Database.Database;
   protected tableName: string;
+  protected enableCache: boolean;
 
-  constructor(tableName: string) {
-    this.db = getDatabase();
+  constructor(tableName: string, enableCache: boolean = true) {
+    this.db = getWriteConnection(); // Para escritas
+    this.readDb = getReadConnection(); // Para leituras
     this.tableName = tableName;
+    this.enableCache = enableCache;
+  }
+  
+  /**
+   * Invalida cache relacionado a esta entidade
+   */
+  protected invalidateEntityCache(): void {
+    if (this.enableCache) {
+      invalidateCachePattern(`^${this.tableName}:`);
+    }
   }
 
   /**

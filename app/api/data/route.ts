@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const repos = getRepositories();
     const { searchParams } = new URL(request.url);
     const entity = searchParams.get('entity');
+    const id = searchParams.get('id');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const month = searchParams.get('month');
@@ -50,16 +51,56 @@ export async function GET(request: NextRequest) {
 
     // Return specific entity data with pagination support
     switch (entity) {
-      case 'owners':
+      case 'owners': {
+        if (id) {
+          const owner = repos.owners.findById(id);
+          if (!owner) {
+            return NextResponse.json({ message: 'Owner not found' }, { status: 404 });
+          }
+          return NextResponse.json(owner);
+        }
         return NextResponse.json(repos.owners.findAll());
-      case 'properties':
+      }
+      case 'properties': {
+        if (id) {
+          const property = repos.properties.findById(id);
+          if (!property) {
+            return NextResponse.json({ message: 'Property not found' }, { status: 404 });
+          }
+          return NextResponse.json(property);
+        }
         return NextResponse.json(repos.properties.findAll());
-      case 'tenants':
+      }
+      case 'tenants': {
+        if (id) {
+          const tenant = repos.tenants.findById(id);
+          if (!tenant) {
+            return NextResponse.json({ message: 'Tenant not found' }, { status: 404 });
+          }
+          return NextResponse.json(tenant);
+        }
         return NextResponse.json(repos.tenants.findAll());
-      case 'brokers':
+      }
+      case 'brokers': {
+        if (id) {
+          const broker = repos.brokers.findById(id);
+          if (!broker) {
+            return NextResponse.json({ message: 'Broker not found' }, { status: 404 });
+          }
+          return NextResponse.json(broker);
+        }
         return NextResponse.json(repos.brokers.findAll());
-      case 'contracts':
+      }
+      case 'contracts': {
+        if (id) {
+          const contract = repos.contracts.findById(id);
+          if (!contract) {
+            return NextResponse.json({ message: 'Contract not found' }, { status: 404 });
+          }
+          return NextResponse.json(contract);
+        }
         return NextResponse.json(repos.contracts.findAll());
+      }
       case 'financial': {
         // Support pagination and month filter
         if (month && year) {
@@ -93,11 +134,11 @@ export async function GET(request: NextRequest) {
       case 'users':
         return NextResponse.json(repos.users.findAll());
       default:
-        return NextResponse.json({ error: 'Unknown entity' }, { status: 400 });
+        return NextResponse.json({ message: 'Invalid entity' }, { status: 400 });
     }
   } catch (error) {
     console.error('Error fetching data:', error);
-    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : 'Failed to fetch data' }, { status: 500 });
   }
 }
 
@@ -108,7 +149,7 @@ export async function POST(request: NextRequest) {
     const { entity, data } = body;
 
     if (!entity || !data) {
-      return NextResponse.json({ error: 'Missing entity or data' }, { status: 400 });
+      return NextResponse.json({ message: 'Missing entity or data' }, { status: 400 });
     }
 
     let result;
@@ -138,13 +179,13 @@ export async function POST(request: NextRequest) {
         result = repos.users.create(data);
         break;
       default:
-        return NextResponse.json({ error: 'Unknown entity' }, { status: 400 });
+        return NextResponse.json({ message: 'Unknown entity' }, { status: 400 });
     }
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error creating data:', error);
-    return NextResponse.json({ error: 'Failed to create data' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to create data' }, { status: 500 });
   }
 }
 
@@ -155,7 +196,7 @@ export async function PUT(request: NextRequest) {
     const { entity, id, updates } = body;
 
     if (!entity || !id || !updates) {
-      return NextResponse.json({ error: 'Missing entity, id, or updates' }, { status: 400 });
+      return NextResponse.json({ message: 'Missing entity, id, or updates' }, { status: 400 });
     }
 
     let result;
@@ -182,13 +223,13 @@ export async function PUT(request: NextRequest) {
         result = repos.users.update(id, updates);
         break;
       default:
-        return NextResponse.json({ error: 'Unknown entity' }, { status: 400 });
+        return NextResponse.json({ message: 'Unknown entity' }, { status: 400 });
     }
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error updating data:', error);
-    return NextResponse.json({ error: 'Failed to update data' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to update data' }, { status: 500 });
   }
 }
 
@@ -200,7 +241,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!entity || !id) {
-      return NextResponse.json({ error: 'Missing entity or id' }, { status: 400 });
+      return NextResponse.json({ message: 'Missing entity or id' }, { status: 400 });
     }
 
     switch (entity) {
@@ -226,13 +267,13 @@ export async function DELETE(request: NextRequest) {
         repos.users.delete(id);
         break;
       default:
-        return NextResponse.json({ error: 'Unknown entity' }, { status: 400 });
+        return NextResponse.json({ message: 'Unknown entity' }, { status: 400 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting data:', error);
-    return NextResponse.json({ error: 'Failed to delete data' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to delete data' }, { status: 500 });
   }
 }
 

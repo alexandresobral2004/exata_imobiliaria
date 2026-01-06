@@ -12,6 +12,8 @@ import { useRealEstate } from './RealEstateContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { maskCPFCNPJ, maskPhone } from '../../utils/masks';
+import { Pagination } from '../ui/pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 export function Tenants() {
   const { tenants, addTenant, updateTenant, deleteTenant } = useRealEstate();
@@ -79,6 +81,17 @@ export function Tenants() {
     t.name.toLowerCase().includes(search.toLowerCase()) || 
     t.document.includes(search)
   ).sort((a, b) => a.name.localeCompare(b.name));
+
+  // Paginação
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedData: paginatedTenants,
+    totalItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = usePagination({ data: filteredTenants, itemsPerPage: 20 });
 
   return (
     <div className="space-y-6">
@@ -235,7 +248,7 @@ export function Tenants() {
                 </TableRow>
               </TableHeader>
             <TableBody>
-              {filteredTenants.map((tenant) => (
+              {paginatedTenants.map((tenant) => (
                 <TableRow key={tenant.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -333,6 +346,15 @@ export function Tenants() {
               )}
             </TableBody>
             </Table>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
           </TableWrapper>
         </CardContent>
       </Card>

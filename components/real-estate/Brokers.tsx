@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { formatPhone } from '../../utils/formatters';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { toast } from 'sonner';
+import { Pagination } from '../ui/pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 export function Brokers() {
   const { brokers, addBroker, updateBroker, deleteBroker } = useRealEstate();
@@ -69,6 +71,17 @@ export function Brokers() {
     b.name.toLowerCase().includes(search.toLowerCase()) || 
     b.creci.includes(search)
   ).sort((a, b) => a.name.localeCompare(b.name));
+
+  // Paginação
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedData: paginatedBrokers,
+    totalItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = usePagination({ data: filteredBrokers, itemsPerPage: 20 });
 
   return (
     <div className="space-y-6">
@@ -183,7 +196,7 @@ export function Brokers() {
                 </TableRow>
               </TableHeader>
             <TableBody>
-              {filteredBrokers.map((broker) => (
+              {paginatedBrokers.map((broker) => (
                 <TableRow key={broker.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -263,6 +276,15 @@ export function Brokers() {
               )}
             </TableBody>
             </Table>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
           </TableWrapper>
         </CardContent>
       </Card>

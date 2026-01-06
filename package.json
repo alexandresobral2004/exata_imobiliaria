@@ -7,9 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --coverage",
+    "test:jest": "jest",
     "db:setup": "tsx lib/db/setup.ts",
     "db:query": "tsx lib/db/query.ts",
-    "db:reset": "rm -f exata.db exata.db-* && tsx lib/db/setup.ts"
+    "db:reset": "rm -f exata.db exata.db-* && tsx lib/db/setup.ts",
+    "db:benchmark": "tsx lib/db/benchmark.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -50,6 +57,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.427.0",
     "next": "^14.2.5",
+    "node-cache": "^5.1.2",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -63,15 +71,29 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@jest/test-sequencer": "^30.1.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.14.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
     "eslint-config-next": "^16.1.1",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "jsdom": "^27.4.0",
     "postcss": "^8.4.40",
     "tailwindcss": "^3.4.7",
+    "ts-jest": "^29.4.6",
     "tsx": "^4.21.0",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^4.0.16"
   }
 }

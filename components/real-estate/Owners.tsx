@@ -15,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Pagination } from '../ui/pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 // Função para formatar CPF ou CNPJ dinamicamente
 const formatDocument = (value: string): string => {
@@ -193,6 +195,17 @@ export function Owners() {
 
     return matchesNameOrDocument && matchesContract && matchesAddendum;
   }).sort((a, b) => a.name.localeCompare(b.name));
+
+  // Paginação
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedData: paginatedOwners,
+    totalItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = usePagination({ data: filteredOwners, itemsPerPage: 20 });
 
   return (
     <div className="space-y-4">
@@ -616,7 +629,7 @@ export function Owners() {
             </TableRow>
           </TableHeader>
             <TableBody>
-              {filteredOwners.map((owner) => (
+              {paginatedOwners.map((owner) => (
                 <TableRow key={owner.id} className="border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/30">
                   <TableCell className="py-4">
                     <div className="flex items-center gap-3">
@@ -739,6 +752,15 @@ export function Owners() {
               )}
             </TableBody>
           </Table>
+          
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
       </div>
     </div>
   );

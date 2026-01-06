@@ -31,7 +31,7 @@ export function RealEstateLayout() {
               className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full data-[state=active]:bg-white data-[state=active]:text-green-600 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-green-500 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 bg-transparent data-[state=active]:shadow-sm"
             >
               <Users className="w-5 h-5" />
-              Proprietários
+              Clientes
             </TabsTrigger>
             <TabsTrigger 
               value="properties" 

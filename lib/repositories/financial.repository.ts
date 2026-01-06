@@ -1,4 +1,5 @@
 import { BaseRepository } from './base.repository';
+import { cachedQuery, generateCacheKey } from '../db/cache';
 
 export type TransactionType = 'Receita' | 'Despesa';
 
@@ -21,7 +22,7 @@ export interface FinancialRecord {
 
 export class FinancialRepository extends BaseRepository<FinancialRecord> {
   constructor() {
-    super('financial_records');
+    super('financial_records', true); // Enable cache
   }
 
   findAll(): FinancialRecord[] {
@@ -86,6 +87,9 @@ export class FinancialRepository extends BaseRepository<FinancialRecord> {
       record.type
     );
 
+    // Invalida cache após criar
+    this.invalidateEntityCache();
+
     return { id, ...record };
   }
 
@@ -140,12 +144,20 @@ export class FinancialRepository extends BaseRepository<FinancialRecord> {
   }
 
   getAllCategories(): FinancialCategory[] {
-    const rows = this.db.prepare('SELECT * FROM financial_categories ORDER BY type, name').all();
-    return rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      type: row.type as TransactionType
-    }));
+    // Cache estático: categorias raramente mudam
+    return cachedQuery(
+      generateCacheKey('financial_categories', 'all'),
+      () => {
+        const rows = this.readDb.prepare('SELECT * FROM financial_categories ORDER BY type, name').all();
+        return rows.map(row => ({
+          id: row.id,
+          name: row.name,
+          type: row.type as TransactionType
+        }));
+      },
+      undefined,
+      'static' // Cache de 1 hora
+    );
   }
 
   /**
@@ -182,28 +194,37 @@ export class FinancialRepository extends BaseRepository<FinancialRecord> {
 
   /**
    * Get financial summary for a specific month/year
+   * Cached for 5 minutes (agregações são pesadas)
    */
   getMonthlySummary(month: number, year: number) {
     const monthStr = month.toString().padStart(2, '0');
     const yearStr = year.toString();
 
-    const summary = this.db.prepare(`
-      SELECT 
-        fr.type,
-        fs.name as status,
-        fc.name as category,
-        SUM(fr.amount) as total,
-        COUNT(*) as count
-      FROM financial_records fr
-      JOIN financial_categories fc ON fr.category_id = fc.id
-      JOIN financial_statuses fs ON fr.status_id = fs.id
-      WHERE strftime('%m', fr.due_date) = ? 
-        AND strftime('%Y', fr.due_date) = ?
-      GROUP BY fr.type, fs.name, fc.name
-      ORDER BY fr.type, fs.name, fc.name
-    `).all(monthStr, yearStr);
+    return cachedQuery(
+      generateCacheKey('financial', 'summary', { month, year }),
+      () => {
+        const summary = this.readDb.prepare(`
+          SELECT 
+            fr.type,
+            fs.name as status,
+            fc.name as category,
+            SUM(fr.amount) as total,
+            COUNT(*) as count
+          FROM financial_records fr
+          INDEXED BY idx_financial_type_status_date
+          JOIN financial_categories fc ON fr.category_id = fc.id
+          JOIN financial_statuses fs ON fr.status_id = fs.id
+          WHERE strftime('%m', fr.due_date) = ? 
+            AND strftime('%Y', fr.due_date) = ?
+          GROUP BY fr.type, fs.name, fc.name
+          ORDER BY fr.type, fs.name, fc.name
+        `).all(monthStr, yearStr);
 
-    return summary;
+        return summary;
+      },
+      undefined,
+      'aggregation' // Cache de 5 minutos
+    );
   }
 
   /**

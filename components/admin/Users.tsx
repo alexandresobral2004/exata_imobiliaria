@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { toast } from "sonner";
 import { maskPhone } from '../../utils/masks';
+import { Pagination } from '../ui/pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 export function Users() {
   const { users, addUser, updateUser, deleteUser } = useRealEstate();
@@ -96,6 +98,17 @@ export function Users() {
     u.name.toLowerCase().includes(search.toLowerCase()) || 
     u.email.toLowerCase().includes(search.toLowerCase())
   ).sort((a, b) => a.name.localeCompare(b.name));
+
+  // Paginação
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedData: paginatedUsers,
+    totalItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = usePagination({ data: filteredUsers, itemsPerPage: 20 });
 
   return (
     <div className="p-6 space-y-6">
@@ -226,7 +239,7 @@ export function Users() {
                 </TableRow>
               </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <TableRow key={user.id} className="dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -303,6 +316,15 @@ export function Users() {
               ))}
             </TableBody>
             </Table>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
           </TableWrapper>
         </CardContent>
       </Card>

@@ -14,6 +14,8 @@ import { Input } from '../ui/input';
 import { cn } from '../ui/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { maskCurrency } from '../../utils/masks';
+import { Pagination } from '../ui/pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 interface FinancialSummary {
   totalReceivables: number;
@@ -100,6 +102,17 @@ export function Financial() {
 
     return true;
   }).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+
+  // Paginação
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedData: paginatedRecords,
+    totalItems: paginatedTotalItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+  } = usePagination({ data: filteredRecords, itemsPerPage: 20 });
 
   // Use aggregated data from API
   const totalReceivables = financialData.summary.totalReceivables;
@@ -364,7 +377,7 @@ export function Financial() {
         </TableRow>
             </TableHeader>
             <TableBody>
-                {filteredRecords.map((record) => {
+                {paginatedRecords.map((record) => {
                   const details = getContractDetails(record.contractId);
                   return (
                     <TableRow key={record.id}>
@@ -487,6 +500,15 @@ export function Financial() {
                 )}
             </TableBody>
           </Table>
+          
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={paginatedTotalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
         </CardContent>
       </Card>
 
